@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -10,9 +11,14 @@ namespace ConsoleTools
 {
     public class StatusLine: IDisposable
     {
-        private Dictionary<string, IStatusColumn> columns = new Dictionary<string, IStatusColumn>();
+        private List<IStatusColumn> columns = new List<IStatusColumn>();
         private readonly Timer timer;
-        
+
+        public readonly ConsoleColor OriginalBackgroundColor;
+        public readonly ConsoleColor OriginalForegroundColor;
+
+        public TextWriter ConsoleOut { get; }
+
         private double _fps = 16.0;
 
         public double FPS {
@@ -30,29 +36,40 @@ namespace ConsoleTools
         public StatusLine() {
             Top = Console.CursorTop;
             timer = new Timer(OnUpdate);
+
+            ConsoleOut = Console.Out;
+            OriginalBackgroundColor = Console.BackgroundColor;
+            OriginalForegroundColor = Console.ForegroundColor;
         }
 
         public void Start() => ResetTimer();
 
-        public void AddColumn(string label, IStatusColumn column) {
-            column.Parent = this;
-            columns.Add(label, column);
+        public void AddColumn(IStatusColumn column) {
+            lock (timer) {
+                column.Parent = this;
+                column.Left = columns.Count == 0 ? 1 : columns.Max(x => x.Width + x.Left) + 1;
+                columns.Add(column);
+            }
         }
 
         private void OnUpdate(object state) {
             lock (timer) {
-                foreach (var column in columns.Values.Where(x => x.isDirty)) {
+                foreach (var column in columns.Where(x => x.isDirty)) {
+                    Console.SetCursorPosition(column.Left, Top);
                     column.Draw();
                 }
+                ConsoleOut.WriteLine();
             }
+
+            ResetTimer();
         }
 
         public void Dispose() {
             lock (timer) {
                 while (columns.Count > 0) {
                     var col = columns.First();
-                    columns.Remove(col.Key);
-                    col.Value.Dispose();
+                    columns.Remove(col);
+                    col.Dispose();
                 }
             }
             ResetTimer();

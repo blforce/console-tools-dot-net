@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ConsoleTools.Columns
 {
-    public interface IStatusColumn: IDisposable
+    public interface IStatusColumn
     {
 
         int Left { get; set; }
@@ -15,5 +15,7 @@ namespace ConsoleTools.Columns
         void Draw();
         int DesiredWidth { get; }
         StatusLine Parent { get; set; }
+        void Dispose();
+
     }
 }

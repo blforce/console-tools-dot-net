@@ -41,7 +41,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Columns\IStatusColumn.cs" />
+    <Compile Include="Columns\Label.cs" />
     <Compile Include="Columns\ProgressBar.cs" />
+    <Compile Include="Columns\Spinner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StatusLine.cs" />
   </ItemGroup>
