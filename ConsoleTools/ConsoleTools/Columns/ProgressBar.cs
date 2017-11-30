@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Threading;
 using ConsoleTools.Columns;
 
@@ -28,6 +29,42 @@ namespace ConsoleTools
         public TextWriter ConsoleOut => Parent?.ConsoleOut;
 
         public int Left { get; set; }
+
+        private int decimalPlaces = 1;
+        public int DecimalPlaces
+        {
+            get => decimalPlaces;
+            set
+            {
+                if (decimalPlaces == value)
+                    return;
+                decimalPlaces = value;
+                FormatString = buildFormatString();
+            } 
+        }
+        public bool ShowPercentage { get; set; } = true;
+
+        private string FormatString { get; set; } = "{0,5:0.0}%";
+
+        private string buildFormatString() {
+            if (!ShowPercentage)
+                return string.Empty;
+
+            var result = new StringBuilder("{0,");
+
+            result.Append(decimalPlaces < 1 ? "3" : (4 + decimalPlaces).ToString());
+
+            result.Append(":0");
+
+            if (decimalPlaces > 0) {
+                result.Append(".");
+                result.Append('0', decimalPlaces);
+            }
+
+            result.Append("}%");
+
+            return result.ToString();
+        }
 
         private int width = 32;
 
@@ -67,12 +104,12 @@ namespace ConsoleTools
         {
             double currentProgress = value / (double)MaxValue;
             int progressBlockCount = (int)(currentProgress * blockCount);
-            int percent = (int)(currentProgress * 100);
+            double percent = currentProgress * 100.0;
 
             Console.ForegroundColor = BorderColor;
             ConsoleOut.Write(LeftBorder);
 
-            var progressStr = string.Format($"{percent,3}%");
+            var progressStr = string.Format(FormatString, percent);
 
             var textStart = (blockCount - 4) / 2;
             var textEnd = textStart + 4;
