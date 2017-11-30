@@ -12,7 +12,7 @@ namespace ConsoleTools.Columns
         public static class SpinnerAnimations {
 
             public static string Blink = @" ░▒▓█▓▒░";
-
+            public static string Spin = @"-\|/";
         }
 
         public string Animation { get; set; } = SpinnerAnimations.Blink;
